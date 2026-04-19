@@ -179,24 +179,26 @@ def test_query_mask():
     def to_upper(s: str) -> str:
         return s.upper()
 
-    query_mask = QueryMask(to_upper, "^u.*$")
+    query_mask = QueryMask(to_upper, "^a.*$")
     rest = RestBuilder(default_query=query_mask)
 
     class Api:
-        @rest.get("/")
-        def do_get(self, user_id: int, phone_number: str) -> Model: ...
+        @rest.get("/", Query("abc"))
+        def do_get(self, abc: int, abcqwerty: int, xyz: int) -> Model: ...
 
     assert Api.do_get.spec.request_transformers == [
         dirty[Url](original_template="/"),
         dirty[Method](method="GET"),
-        dirty[QueryMask](regex="^u.*$", name_style=to_upper),
-        dirty[Query](name_out="phone_number", original_template=None),
+        dirty[Query](name_out="abc", original_template=None),
+        dirty[QueryMask](regex="^a.*$", name_style=to_upper),
+        dirty[Query](name_out="xyz", original_template=None),
         dirty[FormQuery](),
     ]
     assert Api.do_get.spec.fields_out == [
         FieldOut(None, FieldDestination.URL, str),
-        FieldOut("USER_ID", FieldDestination.QUERY, int),
-        FieldOut("phone_number", FieldDestination.QUERY, str),
+        FieldOut("abc", FieldDestination.QUERY, int),
+        FieldOut("ABCQWERTY", FieldDestination.QUERY, int),
+        FieldOut("xyz", FieldDestination.QUERY, int),
     ]
 
 
@@ -204,24 +206,24 @@ def test_multiply_query_masks():
     def to_upper(s: str) -> str:
         return s.upper()
 
-    query_mask = QueryMask(to_upper, "^u.*$")
+    query_mask = QueryMask(to_upper, "^a.*$")
     rest = RestBuilder(default_query=query_mask)
 
     class Api:
-        @rest.get("/", QueryMask(to_upper, "^p.*$"))
-        def do_get(self, user_id: int, phone_number: str) -> Model: ...
+        @rest.get("/", QueryMask(to_upper, "^x.*$"))
+        def do_get(self, abc: int, xyz: str) -> Model: ...
 
     assert Api.do_get.spec.request_transformers == [
         dirty[Url](original_template="/"),
         dirty[Method](method="GET"),
-        dirty[QueryMask](regex="^p.*$", name_style=to_upper),
-        dirty[QueryMask](regex="^u.*$", name_style=to_upper),
+        dirty[QueryMask](regex="^x.*$", name_style=to_upper),
+        dirty[QueryMask](regex="^a.*$", name_style=to_upper),
         dirty[FormQuery](),
     ]
     assert Api.do_get.spec.fields_out == [
         FieldOut(None, FieldDestination.URL, str),
-        FieldOut("PHONE_NUMBER", FieldDestination.QUERY, str),
-        FieldOut("USER_ID", FieldDestination.QUERY, int),
+        FieldOut("XYZ", FieldDestination.QUERY, str),
+        FieldOut("ABC", FieldDestination.QUERY, int),
     ]
 
 
