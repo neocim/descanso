@@ -252,3 +252,26 @@ def test_query_mask_override():
         FieldOut(None, FieldDestination.URL, str),
         FieldOut("Abc", FieldDestination.QUERY, str),
     ]
+
+
+def test_ignore_default_request_params():
+    def to_upper(s: str) -> str:
+        return s.upper()
+
+    query_mask = QueryMask(to_upper, "^a.*$")
+    rest = RestBuilder(default_request_params=query_mask)
+
+    class Api:
+        @rest.get("/", ignore_default_request_params=True)
+        def do_get(self, abc: int) -> Model: ...
+
+    assert Api.do_get.spec.request_transformers == [
+        dirty[Url](original_template="/"),
+        dirty[Method](method="GET"),
+        dirty[Query](name_out="abc", original_template=None),
+        dirty[FormQuery](),
+    ]
+    assert Api.do_get.spec.fields_out == [
+        FieldOut(None, FieldDestination.URL, str),
+        FieldOut("abc", FieldDestination.QUERY, int),
+    ]
