@@ -180,7 +180,7 @@ def test_query_mask():
         return s.upper()
 
     query_mask = QueryMask(to_upper, "^a.*$")
-    rest = RestBuilder(default_query=query_mask)
+    rest = RestBuilder(default_request_params=query_mask)
 
     class Api:
         @rest.get("/", Query("abc"))
@@ -207,7 +207,7 @@ def test_multiply_query_masks():
         return s.upper()
 
     query_mask = QueryMask(to_upper, "^a.*$")
-    rest = RestBuilder(default_query=query_mask)
+    rest = RestBuilder(default_request_params=query_mask)
 
     class Api:
         @rest.get("/", QueryMask(to_upper, "^x.*$"))
@@ -235,7 +235,7 @@ def test_query_mask_override():
         return s.title()
 
     query_mask = QueryMask(to_upper, "^a.*$")
-    rest = RestBuilder(default_query=query_mask)
+    rest = RestBuilder(default_request_params=query_mask)
 
     class Api:
         @rest.get("/", QueryMask(to_title, "^a.*$"))
